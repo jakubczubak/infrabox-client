@@ -1,5 +1,7 @@
 import React from 'react';
 import { IconButton, Tooltip } from '@mui/material';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   FunctionsOutlined as FunctionsOutlinedIcon,
   AccessTime as AccessTimeIcon,
@@ -13,7 +15,24 @@ import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlin
 import AllInclusiveOutlinedIcon from '@mui/icons-material/AllInclusiveOutlined';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 
-export const NCProgram = ({ program, index }) => {
+export const NCProgram = ({ program, index, parent }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging // Dodajemy isDragging, aby wiedzieć, czy element jest przeciągany
+  } = useSortable({
+    id: program.id,
+    data: { parent }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? 'opacity 0.2s ease' : transform ? 'transform 0.1s ease-out' : 'none'
+  };
+
   const handleDelete = () => {
     console.log('Delete program:', program.id);
   };
@@ -23,7 +42,9 @@ export const NCProgram = ({ program, index }) => {
     turn: styles.backgroundTurn
   };
 
-  const itemClassName = `${styles.nc_programs_item} ${backgroundClasses[program.type] || ''}`;
+  const itemClassName = `${styles.nc_programs_item} ${
+    backgroundClasses[program.type] || ''
+  } ${isDragging ? styles.dragging : ''}`; // Dynamicznie dodajemy klasę dragging
 
   const subtypeColors = {
     plate: 'primary',
@@ -78,15 +99,12 @@ export const NCProgram = ({ program, index }) => {
   };
 
   return (
-    <div className={itemClassName}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={itemClassName}>
       <div className={styles.nc_programs_item_info}>
         {[
           { icon: <PushPinOutlinedIcon fontSize="small" />, text: program.name },
           { icon: <BookmarkBorderOutlinedIcon fontSize="small" />, text: program.orderName },
-          {
-            icon: <FunctionsOutlinedIcon fontSize="small" />,
-            text: `${program.quantity} pcs.`
-          },
+          { icon: <FunctionsOutlinedIcon fontSize="small" />, text: `${program.quantity} pcs.` },
           { icon: <AccessTimeIcon fontSize="small" />, text: formatTime(program.time) },
           { icon: deadlineIcon, text: deadlineText },
           { icon: <PersonOutlineOutlinedIcon fontSize="small" />, text: program.author }
@@ -101,19 +119,12 @@ export const NCProgram = ({ program, index }) => {
           <Tooltip
             title={program.subtype}
             arrow
-            componentsProps={{
-              tooltip: {
-                sx: {
-                  textTransform: 'capitalize'
-                }
-              }
-            }}>
+            componentsProps={{ tooltip: { sx: { textTransform: 'capitalize' } } }}>
             <IconButton size="small">
               <FiberManualRecordOutlinedIcon color={subtypeColors[program.subtype]} size="small" />
             </IconButton>
           </Tooltip>
         )}
-
         <Tooltip PopperProps={{ disablePortal: true }} title="Delete" arrow>
           <IconButton size="small" onClick={handleDelete}>
             <DeleteOutlinedIcon fontSize="small" />

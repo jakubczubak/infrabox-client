@@ -8,10 +8,6 @@
   margin-bottom: 20px;
 }
 
-.production_header {
-  /* Jeśli nie ma dodatkowych stylów, można pozostawić pustą klasę lub usunąć */
-}
-
 .production_container {
   display: flex;
   flex-direction: column;
@@ -24,33 +20,32 @@
 .nc_programs_container {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: stretch;
   margin-top: 20px;
   width: 100%;
 }
 
 .nc_programs_row {
-  display: flex;
-  flex-wrap: wrap; /* Zmieniono na wrap zamiast nowrap */
-  justify-content: center; /* Zmieniono z center na flex-start dla lepszego rozmieszczenia */
-  align-items: center;
-  margin: 5px;
-  padding: 0;
-  gap: 5px; /* Dodano odstęp między elementami */
-  min-height: 190px; /* Przeniesiono min-height tutaj z inline stylu */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 290px)); /* Stała szerokość zamiast 1fr */
+  justify-content: center; /* Wyśrodkowanie w poziomie */
+  gap: 20px;
+  padding: 20px;
+  min-height: 190px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
-  padding: 20px;
   border-radius: 10px;
   margin-top: 20px;
+  overflow: auto;
 }
 
 .placeholder {
   font-size: 14px;
   color: #ccc;
-  width: 100%; /* Placeholder zajmuje całą szerokość, jeśli brak programów */
+  width: 100%;
   text-align: center;
+  grid-column: 1 / -1; /* Placeholder zajmuje całą szerokość siatki */
 }
 
 .nc_programs_item {
@@ -64,7 +59,19 @@
   height: 190px;
   border-radius: 10px;
   background-color: #fff;
-  margin: 5px;
+  transition:
+    transform 0.1s ease-out,
+    opacity 0.2s ease; /* Ograniczamy animację */
+}
+
+.nc_programs_item:hover {
+  cursor: grab;
+}
+
+.nc_programs_item.dragging {
+  z-index: 1000;
+  opacity: 0.8;
+  cursor: grabbing;
 }
 
 .nc_programs_item_info {
@@ -93,6 +100,9 @@
   font-size: 14px;
   color: gray;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
 .backgroundMill {
@@ -107,7 +117,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items:flex-start;
+  align-items: flex-start;
   margin-top: 20px;
   width: 100%;
 }
@@ -115,9 +125,9 @@
 .machines_container {
   display: flex;
   flex-direction: row;
-  justify-content: space-evenly;
+  justify-content: center;
   align-items: flex-start;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   padding: 20px;
   margin-top: 20px;
   width: 100%;
@@ -134,7 +144,8 @@
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
   border-radius: 10px;
   gap: 10px;
   flex-grow: 1;
@@ -143,6 +154,7 @@
 .machine_card img {
   width: auto;
   height: 125px;
+  object-fit: contain;
 }
 
 .machine_programs {
@@ -152,5 +164,18 @@
   align-items: center;
   padding: 10px;
   width: 340px;
-  min-height: 240px; /* Przeniesiono min-height tutaj z inline stylu */
+  min-height: 240px;
+  overflow: auto;
+}
+
+@media (max-width: 768px) {
+  .nc_programs_item {
+    width: 100%;
+    max-width: 290px;
+  }
+
+  .machine_card {
+    width: 100%;
+    max-width: 340px;
+  }
 }

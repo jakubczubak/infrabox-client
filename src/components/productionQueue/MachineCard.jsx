@@ -2,6 +2,8 @@ import React from 'react';
 import { Tooltip, Button, IconButton } from '@mui/material';
 import styles from './css/productionQueue.module.css';
 import { NCProgram } from './NCProgram';
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import {
   AccessTime as AccessTimeIcon,
   DownloadOutlined as DownloadOutlinedIcon,
@@ -14,8 +16,14 @@ export const MachineCard = ({
   name,
   programs,
   onGenerateQueue,
-  onSyncQueue
+  onSyncQueue,
+  droppableId
 }) => {
+  const { setNodeRef } = useDroppable({
+    id: droppableId,
+    data: { parent: droppableId }
+  });
+
   const totalTime = React.useMemo(() => {
     return programs.reduce((sum, program) => sum + program.time, 0);
   }, [programs]);
@@ -48,13 +56,13 @@ export const MachineCard = ({
         {formattedTime}
       </Button>
       <div className={styles.machine_programs_container}>
-        <div className={styles.machine_programs} style={{ minHeight: '240px' }}>
-          {programs.length === 0 && (
-            <div className={styles.placeholder}>No programs here yet!</div>
-          )}
-          {programs.map((program, index) => (
-            <NCProgram program={program} key={program.id} index={index} />
-          ))}
+        <div ref={setNodeRef} className={styles.machine_programs} style={{ minHeight: '240px' }}>
+          {programs.length === 0 && <div className={styles.placeholder}>No programs here yet!</div>}
+          <SortableContext items={programs.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+            {programs.map((program, index) => (
+              <NCProgram program={program} key={program.id} index={index} parent={droppableId} />
+            ))}
+          </SortableContext>
         </div>
       </div>
     </div>

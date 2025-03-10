@@ -14,6 +14,8 @@ import styles from './css/productionQueue.module.css';
 import { NCProgramsList } from './NCProgramsList';
 import { CompletedProgramsList } from './CompletedProgramsList';
 import { MachineCard } from './MachineCard';
+import { arrayMove } from '@dnd-kit/sortable';
+import { DndContext, closestCenter } from '@dnd-kit/core';
 
 import bacaImage from '../../assets/production/BACA R1000.png';
 import venusImage from '../../assets/production/VENUS 350.png';
@@ -318,8 +320,44 @@ export const ProductionQueue = () => {
     console.log('Synchronizacja kolejki dla maszyny:', machineId);
   }, []);
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeContainer = active.data.current?.parent;
+    const overContainer = over.data.current?.parent || over.id;
+
+    if (activeContainer === overContainer) {
+      const items = productionQueueData[activeContainer];
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+
+      setProductionQueueData((prev) => ({
+        ...prev,
+        [activeContainer]: arrayMove(prev[activeContainer], oldIndex, newIndex)
+      }));
+    } else {
+      setProductionQueueData((prev) => {
+        const sourceItems = [...prev[activeContainer]];
+        const destItems = [...prev[overContainer]];
+        const draggedItem = sourceItems.find((item) => item.id === active.id);
+
+        const sourceIndex = sourceItems.findIndex((item) => item.id === active.id);
+        sourceItems.splice(sourceIndex, 1);
+        destItems.push(draggedItem);
+
+        return {
+          ...prev,
+          [activeContainer]: sourceItems,
+          [overContainer]: destItems
+        };
+      });
+    }
+  };
+
   return (
-    <>
+    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <Breadcrumbs
         aria-label="breadcrumb"
         separator={<Typography color="text.primary">/</Typography>}>
@@ -352,7 +390,11 @@ export const ProductionQueue = () => {
       </Tooltip>
 
       <div className={styles.production_container}>
-        <NCProgramsList programs={productionQueueData.ncQueue} title="NC Programs" />
+        <NCProgramsList
+          programs={productionQueueData.ncQueue}
+          title="NC Programs"
+          droppableId="ncQueue"
+        />
 
         <div className={styles.production_queue_container}>
           <h2 className={styles.production_header}>Production queue</h2>
@@ -364,6 +406,7 @@ export const ProductionQueue = () => {
               programs={productionQueueData.baca1}
               onGenerateQueue={() => handleGenerateQueue('baca1')}
               onSyncQueue={() => handleSyncQueue('baca1')}
+              droppableId="baca1"
             />
             <MachineCard
               image={bacaImage}
@@ -372,6 +415,7 @@ export const ProductionQueue = () => {
               programs={productionQueueData.baca2}
               onGenerateQueue={() => handleGenerateQueue('baca2')}
               onSyncQueue={() => handleSyncQueue('baca2')}
+              droppableId="baca2"
             />
             <MachineCard
               image={venusImage}
@@ -380,6 +424,7 @@ export const ProductionQueue = () => {
               programs={productionQueueData.vensu350}
               onGenerateQueue={() => handleGenerateQueue('vensu350')}
               onSyncQueue={() => handleSyncQueue('vensu350')}
+              droppableId="vensu350"
             />
           </div>
         </div>
@@ -387,6 +432,7 @@ export const ProductionQueue = () => {
         <CompletedProgramsList
           programs={productionQueueData.completed}
           title="Completed Programs"
+          droppableId="completed"
         />
       </div>
 
@@ -398,6 +444,6 @@ export const ProductionQueue = () => {
           onClick={() => setIsOpen(true)}
         />
       </Tooltip>
-    </>
+    </DndContext>
   );
 };
